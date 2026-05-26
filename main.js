@@ -987,47 +987,55 @@ async function renderWatch(id) {
     ],
     settings: ['quality', 'speed'],
     speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+    fullscreen: { iosNative: true }, // Force iOS native player takeover for robust fullscreen
     tooltips: { controls: true, seek: true }
   };
 
-  let playerInstance = null;
+  // 1. Initialize Plyr first to wrap the video element cleanly
+  const playerInstance = new Plyr(videoElement, plyrOptions);
+  let hlsInstance = null;
 
+  // 2. Initialize streaming backend
   if (Hls.isSupported()) {
-    const hls = new Hls({
+    hlsInstance = new Hls({
       maxMaxBufferLength: 30,
       enableWorker: true,
       lowLatencyMode: true
     });
-    hls.loadSource(sourceUrl);
-    hls.attachMedia(videoElement);
+    hlsInstance.loadSource(sourceUrl);
+    hlsInstance.attachMedia(videoElement);
     
-    hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-      playerInstance = new Plyr(videoElement, plyrOptions);
-    });
-    
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      playerInstance.play().catch(err => console.log("Autoplay blocked:", err));
-    });
-    
-    // Cleanup player resources on SPA page transitions
-    window.addEventListener('hashchange', function cleanup() {
-      if (hls) hls.destroy();
-      if (playerInstance) playerInstance.destroy();
-      window.removeEventListener('hashchange', cleanup);
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+      // Autoplay stream (with mute fallback if browser blocks)
+      playerInstance.play().catch(() => {
+        playerInstance.muted = true;
+        playerInstance.play().catch(err => console.log("Muted autoplay blocked:", err));
+      });
     });
   } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-    // Native HLS (Safari/iOS)
+    // Native support (Safari / iOS Safari) - bind source directly
     videoElement.src = sourceUrl;
-    playerInstance = new Plyr(videoElement, plyrOptions);
-    videoElement.addEventListener('loadedmetadata', () => {
-      playerInstance.play().catch(err => console.log("Autoplay blocked:", err));
-    });
     
-    window.addEventListener('hashchange', function cleanup() {
-      if (playerInstance) playerInstance.destroy();
-      window.removeEventListener('hashchange', cleanup);
-    });
+    const startPlay = () => {
+      playerInstance.play().catch(() => {
+        playerInstance.muted = true;
+        playerInstance.play().catch(err => console.log("Muted autoplay blocked:", err));
+      });
+    };
+
+    if (videoElement.readyState >= 1) {
+      startPlay();
+    } else {
+      videoElement.addEventListener('loadedmetadata', startPlay);
+    }
   }
+
+  // Cleanup resources when leaving watch page
+  window.addEventListener('hashchange', function cleanup() {
+    if (hlsInstance) hlsInstance.destroy();
+    if (playerInstance) playerInstance.destroy();
+    window.removeEventListener('hashchange', cleanup);
+  });
 
   // Cinema Mode handler
   const layout = document.getElementById('watch-layout');
