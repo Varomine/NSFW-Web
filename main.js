@@ -351,9 +351,13 @@ async function renderSearchPage(query) {
 }
 
 // Fetch category videos page (CORS proxied locally via Vite)
-async function fetchCategoryVideos(slug) {
+async function fetchCategoryVideos(slug, page = 1) {
   try {
-    const res = await fetch(`/hentaicity-search/videos/straight/${slug}-popular.html`);
+    const url = page === 1 
+      ? `/hentaicity-search/videos/straight/${slug}-popular.html` 
+      : `/hentaicity-search/videos/straight/${slug}-popular-${page}.html`;
+      
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch category page');
     const html = await res.text();
     
@@ -361,7 +365,11 @@ async function fetchCategoryVideos(slug) {
     const doc = parser.parseFromString(html, 'text/html');
     const items = doc.querySelectorAll('.outer-item');
     
-    return Array.from(items).map(item => {
+    // Extract total pages from hentaicity pagination elements
+    const maxPageEl = doc.getElementById('maxpage') || doc.querySelector('.total_pages');
+    const lastPage = maxPageEl ? parseInt(maxPageEl.textContent.trim()) : 1;
+    
+    const videos = Array.from(items).map(item => {
       const linkEl = item.querySelector('a.thumb-img');
       const titleEl = item.querySelector('a.video-title');
       const imgEl = item.querySelector('img');
@@ -391,6 +399,14 @@ async function fetchCategoryVideos(slug) {
         views: views
       };
     }).filter(video => video.id);
+
+    return {
+      videos: videos,
+      pagination: {
+        current: page,
+        last: lastPage
+      }
+    };
   } catch (error) {
     console.error('Fetch Category Videos Error:', error);
     return null;
@@ -423,19 +439,22 @@ function renderGenres() {
 }
 
 // Render category videos grid view
-async function renderCategoryVideos(slug) {
+async function renderCategoryVideos(slug, page = 1) {
   setActiveNavLink('nav-genres');
   
   const genre = genresList.find(g => g.slug === slug);
   const genreName = genre ? genre.name : slug;
   
-  showLoading(`Loading ${genreName} videos...`);
+  showLoading(`Loading ${genreName} videos (Page ${page})...`);
   
-  const results = await fetchCategoryVideos(slug);
-  if (!results) {
-    showError(`Error loading ${genreName} videos from database.`, () => renderCategoryVideos(slug));
+  const data = await fetchCategoryVideos(slug, page);
+  if (!data || !data.videos) {
+    showError(`Error loading ${genreName} videos from database.`, () => renderCategoryVideos(slug, page));
     return;
   }
+
+  const results = data.videos;
+  const pagination = data.pagination;
 
   // Cache in popularCache so detail lookup works
   state.popularCache = [...results, ...state.popularCache];
@@ -462,6 +481,52 @@ async function renderCategoryVideos(slug) {
 
       <div class="grid" id="genre-grid">
         ${results.map(createCardHTML).join('')}
+      </div>
+
+      <!-- Pagination UI -->
+      <div class="pagination-container">
+  `;
+
+  // Render pagination buttons
+  // Prev button
+  const hasPrev = pagination.current > 1;
+  html += `
+    <button class="page-btn" ${hasPrev ? '' : 'disabled'} onclick="location.hash='#/genres/${slug}?page=${pagination.current - 1}'" title="Previous Page">
+      <i class="fa-solid fa-chevron-left"></i>
+    </button>
+  `;
+
+  // Page Numbers: We can display surrounding pages
+  const startPage = Math.max(1, pagination.current - 2);
+  const endPage = Math.min(pagination.last, pagination.current + 2);
+
+  if (startPage > 1) {
+    html += `<button class="page-btn" onclick="location.hash='#/genres/${slug}?page=1'">1</button>`;
+    if (startPage > 2) html += `<span class="page-dots">...</span>`;
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    html += `
+      <button class="page-btn ${i === pagination.current ? 'active' : ''}" onclick="location.hash='#/genres/${slug}?page=${i}'">
+        ${i}
+      </button>
+    `;
+  }
+
+  if (endPage < pagination.last) {
+    if (endPage < pagination.last - 1) html += `<span class="page-dots">...</span>`;
+    html += `<button class="page-btn" onclick="location.hash='#/genres/${slug}?page=${pagination.last}'">${pagination.last}</button>`;
+  }
+
+  // Next button
+  const hasNext = pagination.current < pagination.last;
+  html += `
+    <button class="page-btn" ${hasNext ? '' : 'disabled'} onclick="location.hash='#/genres/${slug}?page=${pagination.current + 1}'" title="Next Page">
+      <i class="fa-solid fa-chevron-right"></i>
+    </button>
+  `;
+
+  html += `
       </div>
     </div>
   `;
@@ -614,27 +679,40 @@ async function renderPopular(page = 1) {
   const results = data.results;
   const pagination = data.pagination;
 
-  // Pick first item as featured in Hero
-  const featured = results[0];
-  const durationText = featured.duration || '00:00';
-  const viewsText = formatViews(featured.views);
+  // Select 5 random items from results to feature in Netflix-style slider
+  const sliderItems = [...results].sort(() => 0.5 - Math.random()).slice(0, Math.min(results.length, 5));
 
   let html = `
     <div class="container">
-      <!-- Hero Banner -->
-      <div class="hero" style="background-image: url('${featured.thumbnail}')">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-          <span class="hero-tag"><i class="fa-solid fa-fire"></i> Featured Popular</span>
-          <h1 class="hero-title">${featured.title}</h1>
-          <div class="hero-meta">
-            <span><i class="fa-solid fa-eye"></i> ${viewsText}</span>
-            <span><i class="fa-solid fa-clock"></i> ${durationText}</span>
-            <span><i class="fa-solid fa-film"></i> Hentaicity</span>
+      <!-- Hero Banner (Slideshow Slider) -->
+      <div class="hero" id="hero-slider">
+        ${sliderItems.map((video, idx) => `
+          <div class="hero-slide ${idx === 0 ? 'active' : ''}" style="background-image: url('${video.thumbnail}')">
+            <div class="hero-slide-overlay"></div>
+            <div class="hero-slide-content">
+              <span class="hero-tag"><i class="fa-solid fa-fire"></i> Featured Popular</span>
+              <h1 class="hero-title">${video.title}</h1>
+              <div class="hero-meta">
+                <span><i class="fa-solid fa-eye"></i> ${formatViews(video.views)}</span>
+                <span><i class="fa-solid fa-clock"></i> ${video.duration || '00:00'}</span>
+                <span><i class="fa-solid fa-film"></i> Hentaicity</span>
+              </div>
+              <button class="hero-btn" onclick="location.hash='#/watch/${video.id}'">
+                <i class="fa-solid fa-play"></i> Watch Now
+              </button>
+            </div>
           </div>
-          <button class="hero-btn" onclick="location.hash='#/watch/${featured.id}'">
-            <i class="fa-solid fa-play"></i> Watch Now
-          </button>
+        `).join('')}
+        
+        <!-- Arrows -->
+        <button class="hero-nav-btn prev" id="slider-prev-btn" title="Previous Slide"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="hero-nav-btn next" id="slider-next-btn" title="Next Slide"><i class="fa-solid fa-chevron-right"></i></button>
+        
+        <!-- Indicators -->
+        <div class="hero-indicators">
+          ${sliderItems.map((_, idx) => `
+            <div class="hero-dot-indicator ${idx === 0 ? 'active' : ''}" data-index="${idx}"></div>
+          `).join('')}
         </div>
       </div>
 
@@ -701,6 +779,64 @@ async function renderPopular(page = 1) {
   
   // Bind card elements
   bindGridEvents(document.getElementById('popular-grid'), results);
+
+  // Initialize Slider Controllers
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots = document.querySelectorAll('.hero-dot-indicator');
+  const prevBtn = document.getElementById('slider-prev-btn');
+  const nextBtn = document.getElementById('slider-next-btn');
+  
+  let currentSlide = 0;
+  let autoPlayInterval = null;
+
+  function showSlide(index) {
+    if (index < 0) index = slides.length - 1;
+    if (index >= slides.length) index = 0;
+    currentSlide = index;
+    
+    slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+  }
+
+  function startAutoPlay() {
+    stopAutoPlay();
+    autoPlayInterval = setInterval(() => {
+      showSlide(currentSlide + 1);
+    }, 6000); // Shift every 6 seconds
+  }
+
+  function stopAutoPlay() {
+    if (autoPlayInterval) clearInterval(autoPlayInterval);
+  }
+
+  if (slides.length > 1) {
+    prevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showSlide(currentSlide - 1);
+      startAutoPlay();
+    });
+    nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showSlide(currentSlide + 1);
+      startAutoPlay();
+    });
+    dots.forEach(dot => {
+      dot.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(dot.getAttribute('data-index'));
+        showSlide(idx);
+        startAutoPlay();
+      });
+    });
+    
+    // Start autoplay
+    startAutoPlay();
+    
+    // Pause on hover
+    const sliderEl = document.getElementById('hero-slider');
+    sliderEl.addEventListener('mouseenter', stopAutoPlay);
+    sliderEl.addEventListener('mouseleave', startAutoPlay);
+  }
 }
 
 // --- Recent View ---
@@ -876,16 +1012,33 @@ async function renderWatch(id) {
       : '<i class="fa-regular fa-bookmark"></i> Add to Watchlist';
   });
 
-  // Native fullscreen call to player iframe
+  // Native fullscreen call to player iframe (uses mobile CSS fallback if on phone/tablet)
   const fullscreenBtn = document.getElementById('fullscreen-iframe-btn');
+  const playerWrapper = document.querySelector('.player-container-wrapper');
+  
   fullscreenBtn.addEventListener('click', () => {
-    const iframe = document.getElementById('stream-iframe');
-    if (iframe.requestFullscreen) {
-      iframe.requestFullscreen();
-    } else if (iframe.webkitRequestFullscreen) { /* Safari */
-      iframe.webkitRequestFullscreen();
-    } else if (iframe.msRequestFullscreen) { /* IE11 */
-      iframe.msRequestFullscreen();
+    const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      const isActive = playerWrapper.classList.toggle('mobile-fullscreen-active');
+      fullscreenBtn.innerHTML = isActive 
+        ? '<i class="fa-solid fa-minimize"></i> Exit Fullscreen' 
+        : '<i class="fa-solid fa-maximize"></i> Fullscreen';
+        
+      if (isActive) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    } else {
+      const iframe = document.getElementById('stream-iframe');
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.webkitRequestFullscreen) { /* Safari */
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) { /* IE11 */
+        iframe.msRequestFullscreen();
+      }
     }
   });
 }
@@ -997,8 +1150,11 @@ function router() {
   } else if (hash === '#/genres') {
     renderGenres();
   } else if (hash.startsWith('#/genres/')) {
-    const slug = hash.replace('#/genres/', '');
-    renderCategoryVideos(slug);
+    const parts = hash.split('?');
+    const slug = parts[0].replace('#/genres/', '');
+    const params = new URLSearchParams(parts[1]);
+    const pageNum = parseInt(params.get('page')) || 1;
+    renderCategoryVideos(slug, pageNum);
   } else if (hash.startsWith('#/recent')) {
     renderRecent();
   } else if (hash.startsWith('#/watchlist')) {
