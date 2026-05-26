@@ -917,15 +917,9 @@ async function renderWatch(id) {
         <!-- Main Watch Area -->
         <div class="watch-main">
           
-          <!-- Beautiful Styled Player iframe Container -->
+          <!-- Beautiful Styled HTML5 Player Wrapper -->
           <div class="player-container-wrapper">
-            <iframe 
-              id="stream-iframe"
-              class="watch-iframe" 
-              src="./player.html?src=${encodeURIComponent(sourceUrl)}&title=${encodeURIComponent(video.title)}" 
-              allowfullscreen 
-              allow="autoplay; encrypted-media; picture-in-picture">
-            </iframe>
+            <video id="watch-player" class="watch-iframe" playsinline controls></video>
           </div>
 
           <!-- Cinema Mode and Controls -->
@@ -983,6 +977,58 @@ async function renderWatch(id) {
 
   elements.content.innerHTML = html;
 
+  // Initialize Hls.js and Plyr directly on the watch player video tag
+  const videoElement = document.getElementById('watch-player');
+  const plyrOptions = {
+    title: video.title,
+    controls: [
+      'play-large', 'play', 'progress', 'current-time', 
+      'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen'
+    ],
+    settings: ['quality', 'speed'],
+    speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+    tooltips: { controls: true, seek: true }
+  };
+
+  let playerInstance = null;
+
+  if (Hls.isSupported()) {
+    const hls = new Hls({
+      maxMaxBufferLength: 30,
+      enableWorker: true,
+      lowLatencyMode: true
+    });
+    hls.loadSource(sourceUrl);
+    hls.attachMedia(videoElement);
+    
+    hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+      playerInstance = new Plyr(videoElement, plyrOptions);
+    });
+    
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      playerInstance.play().catch(err => console.log("Autoplay blocked:", err));
+    });
+    
+    // Cleanup player resources on SPA page transitions
+    window.addEventListener('hashchange', function cleanup() {
+      if (hls) hls.destroy();
+      if (playerInstance) playerInstance.destroy();
+      window.removeEventListener('hashchange', cleanup);
+    });
+  } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+    // Native HLS (Safari/iOS)
+    videoElement.src = sourceUrl;
+    playerInstance = new Plyr(videoElement, plyrOptions);
+    videoElement.addEventListener('loadedmetadata', () => {
+      playerInstance.play().catch(err => console.log("Autoplay blocked:", err));
+    });
+    
+    window.addEventListener('hashchange', function cleanup() {
+      if (playerInstance) playerInstance.destroy();
+      window.removeEventListener('hashchange', cleanup);
+    });
+  }
+
   // Cinema Mode handler
   const layout = document.getElementById('watch-layout');
   const cinemaBtn = document.getElementById('cinema-toggle');
@@ -996,7 +1042,6 @@ async function renderWatch(id) {
   // Watchlist toggle button
   const watchlistBtn = document.getElementById('watchlist-toggle-btn');
   watchlistBtn.addEventListener('click', () => {
-    // Generate object compatible with card lists using resolved metadata
     const cardVideo = {
       id: meta.id,
       title: meta.title,
@@ -1012,33 +1057,11 @@ async function renderWatch(id) {
       : '<i class="fa-regular fa-bookmark"></i> Add to Watchlist';
   });
 
-  // Native fullscreen call to player iframe (uses mobile CSS fallback if on phone/tablet)
+  // Bind watch page Fullscreen button to trigger Plyr's fullscreen controller natively
   const fullscreenBtn = document.getElementById('fullscreen-iframe-btn');
-  const playerWrapper = document.querySelector('.player-container-wrapper');
-  
   fullscreenBtn.addEventListener('click', () => {
-    const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      const isActive = playerWrapper.classList.toggle('mobile-fullscreen-active');
-      fullscreenBtn.innerHTML = isActive 
-        ? '<i class="fa-solid fa-minimize"></i> Exit Fullscreen' 
-        : '<i class="fa-solid fa-maximize"></i> Fullscreen';
-        
-      if (isActive) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    } else {
-      const iframe = document.getElementById('stream-iframe');
-      if (iframe.requestFullscreen) {
-        iframe.requestFullscreen();
-      } else if (iframe.webkitRequestFullscreen) { /* Safari */
-        iframe.webkitRequestFullscreen();
-      } else if (iframe.msRequestFullscreen) { /* IE11 */
-        iframe.msRequestFullscreen();
-      }
+    if (playerInstance) {
+      playerInstance.fullscreen.toggle();
     }
   });
 }

@@ -4,6 +4,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    allowedHosts: ['nonexperimental-pseudofeverish-ouida.ngrok-free.dev'],
     proxy: {
       '/hentaicity-search': {
         target: 'https://www.hentaicity.com',
