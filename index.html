@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anisecret - Premium Anime Streaming Database</title>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header id="app-header">
+    <div class="container header-container">
+      <!-- Logo -->
+      <a href="#/" class="logo-link">
+        <span class="logo-text">AniSecret<span class="logo-dot"></span></span>
+      </a>
+
+      <!-- Navbar -->
+      <nav>
+        <a href="#/" class="nav-link active" id="nav-home"><i class="fa-solid fa-fire-flame-curved" style="margin-right: 6px;"></i>Popular</a>
+        <a href="#/recent" class="nav-link" id="nav-recent"><i class="fa-solid fa-clock" style="margin-right: 6px;"></i>Recent</a>
+        <a href="#/genres" class="nav-link" id="nav-genres"><i class="fa-solid fa-tags" style="margin-right: 6px;"></i>Genres</a>
+        <a href="#/watchlist" class="nav-link" id="nav-watchlist" style="position: relative;">
+          <i class="fa-solid fa-bookmark" style="margin-right: 6px;"></i>Watchlist
+          <span class="badge-count" id="watchlist-badge" style="display: none;">0</span>
+        </a>
+        <a href="#/history" class="nav-link" id="nav-history"><i class="fa-solid fa-history" style="margin-right: 6px;"></i>History</a>
+      </nav>
+
+      <!-- Actions (Search & Watchlist badge) -->
+      <div class="header-actions">
+        <div class="search-wrapper">
+          <input type="text" class="search-input" id="search-bar" placeholder="Quick filter popular...">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Dynamic Content Injection App Content -->
+  <main id="app-content">
+    <!-- Content injected here by main.js -->
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-logo">AniSecret<span class="logo-dot"></span></div>
+      <div class="footer-links">
+        <a href="#/" class="footer-link">Home</a>
+        <a href="#/recent" class="footer-link">Recent</a>
+        <a href="#/genres" class="footer-link">Genres</a>
+        <a href="#/watchlist" class="footer-link">Watchlist</a>
+        <a href="#/history" class="footer-link">History</a>
+      </div>
+      <div class="footer-credits">
+        <p>&copy; 2026 AniSecret. Built with premium design for the ultimate database & streaming experience.</p>
+        <p style="margin-top: 8px; font-size: 12px; opacity: 0.5;">This site is for demo purposes. All streaming files are loaded dynamically from external APIs.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SPA Logic Script -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

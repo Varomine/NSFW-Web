@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/hentaicity-search/:path*",
+      "destination": "https://www.hentaicity.com/:path*"
+    }
+  ]
+}
