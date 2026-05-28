@@ -919,7 +919,7 @@ async function renderWatch(id) {
           
           <!-- Beautiful Styled HTML5 Player Wrapper -->
           <div class="player-container-wrapper">
-            <video id="watch-player" class="watch-iframe" playsinline controls></video>
+            <iframe id="watch-player" class="watch-iframe" src="player.html?src=${encodeURIComponent(sourceUrl)}&title=${encodeURIComponent(video.title)}" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
           </div>
 
           <!-- Cinema Mode and Controls -->
@@ -977,66 +977,6 @@ async function renderWatch(id) {
 
   elements.content.innerHTML = html;
 
-  // Initialize Hls.js and Plyr directly on the watch player video tag
-  const videoElement = document.getElementById('watch-player');
-  const plyrOptions = {
-    title: video.title,
-    controls: [
-      'play-large', 'play', 'progress', 'current-time', 
-      'duration', 'mute', 'volume', 'settings', 'pip', 'fullscreen'
-    ],
-    settings: ['quality', 'speed'],
-    speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-    fullscreen: { iosNative: true }, // Force iOS native player takeover for robust fullscreen
-    tooltips: { controls: true, seek: true }
-  };
-
-  // 1. Initialize Plyr first to wrap the video element cleanly
-  const playerInstance = new Plyr(videoElement, plyrOptions);
-  let hlsInstance = null;
-
-  // 2. Initialize streaming backend
-  if (Hls.isSupported()) {
-    hlsInstance = new Hls({
-      maxMaxBufferLength: 30,
-      enableWorker: true,
-      lowLatencyMode: true
-    });
-    hlsInstance.loadSource(sourceUrl);
-    hlsInstance.attachMedia(videoElement);
-    
-    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-      // Autoplay stream (with mute fallback if browser blocks)
-      playerInstance.play().catch(() => {
-        playerInstance.muted = true;
-        playerInstance.play().catch(err => console.log("Muted autoplay blocked:", err));
-      });
-    });
-  } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-    // Native support (Safari / iOS Safari) - bind source directly
-    videoElement.src = sourceUrl;
-    
-    const startPlay = () => {
-      playerInstance.play().catch(() => {
-        playerInstance.muted = true;
-        playerInstance.play().catch(err => console.log("Muted autoplay blocked:", err));
-      });
-    };
-
-    if (videoElement.readyState >= 1) {
-      startPlay();
-    } else {
-      videoElement.addEventListener('loadedmetadata', startPlay);
-    }
-  }
-
-  // Cleanup resources when leaving watch page
-  window.addEventListener('hashchange', function cleanup() {
-    if (hlsInstance) hlsInstance.destroy();
-    if (playerInstance) playerInstance.destroy();
-    window.removeEventListener('hashchange', cleanup);
-  });
-
   // Cinema Mode handler
   const layout = document.getElementById('watch-layout');
   const cinemaBtn = document.getElementById('cinema-toggle');
@@ -1065,12 +1005,34 @@ async function renderWatch(id) {
       : '<i class="fa-regular fa-bookmark"></i> Add to Watchlist';
   });
 
-  // Bind watch page Fullscreen button to trigger Plyr's fullscreen controller natively
+  // Wire up the external Fullscreen button to request fullscreen on the iframe element
   const fullscreenBtn = document.getElementById('fullscreen-iframe-btn');
-  fullscreenBtn.addEventListener('click', () => {
-    if (playerInstance) {
-      playerInstance.fullscreen.toggle();
+  const handleFullscreen = (e) => {
+    if (e) e.preventDefault();
+    const iframe = document.getElementById('watch-player');
+    if (iframe) {
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) {
+        iframe.msRequestFullscreen();
+      } else if (iframe.mozRequestFullScreen) {
+        iframe.mozRequestFullScreen();
+      }
     }
+  };
+
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', handleFullscreen);
+  }
+
+  // Cleanup event listeners when leaving watch page
+  window.addEventListener('hashchange', function cleanup() {
+    if (fullscreenBtn) {
+      fullscreenBtn.removeEventListener('click', handleFullscreen);
+    }
+    window.removeEventListener('hashchange', cleanup);
   });
 }
 

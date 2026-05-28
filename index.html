@@ -1,79 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anisecret - Premium Anime Streaming Database</title>
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  
-  <!-- Plyr CSS for Video Player -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
-  
-  <!-- Hls.js and Plyr CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12/dist/hls.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.js"></script>
-  
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AniSecret — Your premium anime streaming destination. Watch the latest anime with Thai subtitles in HD quality." />
+  <meta name="theme-color" content="#08080d" />
+  <title>AniSecret — Anime Streaming</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- HLS.js -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+
+  <!-- Favicon (inline SVG as data URI) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🔮</text></svg>" />
 </head>
 <body>
 
-  <!-- Header -->
-  <header id="app-header">
-    <div class="container header-container">
-      <!-- Logo -->
-      <a href="#/" class="logo-link">
-        <span class="logo-text">AniSecret<span class="logo-dot"></span></span>
+  <!-- ═══ Navbar ═══ -->
+  <nav class="navbar" id="navbar">
+    <div class="container navbar-inner">
+
+      <!-- Brand -->
+      <a href="#/" class="brand" id="brand-link">
+        <span class="brand-name">AniSecret</span><sup class="brand-th">TH</sup>
       </a>
 
-      <!-- Navbar -->
-      <nav>
-        <a href="#/" class="nav-link active" id="nav-home"><i class="fa-solid fa-fire-flame-curved" style="margin-right: 6px;"></i>Popular</a>
-        <a href="#/recent" class="nav-link" id="nav-recent"><i class="fa-solid fa-clock" style="margin-right: 6px;"></i>Recent</a>
-        <a href="#/genres" class="nav-link" id="nav-genres"><i class="fa-solid fa-tags" style="margin-right: 6px;"></i>Genres</a>
-        <a href="#/watchlist" class="nav-link" id="nav-watchlist" style="position: relative;">
-          <i class="fa-solid fa-bookmark" style="margin-right: 6px;"></i>Watchlist
-          <span class="badge-count" id="watchlist-badge" style="display: none;">0</span>
-        </a>
-        <a href="#/history" class="nav-link" id="nav-history"><i class="fa-solid fa-history" style="margin-right: 6px;"></i>History</a>
-      </nav>
+      <!-- Search -->
+      <form class="search-wrapper" id="search-form" role="search">
+        <input
+          type="search"
+          id="search-input"
+          class="search-input"
+          placeholder="Search anime..."
+          autocomplete="off"
+          aria-label="Search anime"
+        />
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </form>
 
-      <!-- Actions (Search & Watchlist badge) -->
-      <div class="header-actions">
-        <div class="search-wrapper">
-          <input type="text" class="search-input" id="search-bar" placeholder="Quick filter popular...">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        </div>
+      <!-- Nav Links -->
+      <div class="nav-links">
+        <a href="#/" class="nav-link active" data-page="home">Home</a>
       </div>
-    </div>
-  </header>
 
-  <!-- Dynamic Content Injection App Content -->
-  <main id="app-content">
-    <!-- Content injected here by main.js -->
+    </div>
+  </nav>
+
+  <!-- ═══ Main Content ═══ -->
+  <main id="app">
+    <!-- SPA pages render here -->
   </main>
 
-  <!-- Footer -->
-  <footer>
+  <!-- ═══ Footer ═══ -->
+  <footer class="site-footer">
     <div class="container">
-      <div class="footer-logo">AniSecret<span class="logo-dot"></span></div>
-      <div class="footer-links">
-        <a href="#/" class="footer-link">Home</a>
-        <a href="#/recent" class="footer-link">Recent</a>
-        <a href="#/genres" class="footer-link">Genres</a>
-        <a href="#/watchlist" class="footer-link">Watchlist</a>
-        <a href="#/history" class="footer-link">History</a>
-      </div>
-      <div class="footer-credits">
-        <p>&copy; 2026 AniSecret. Built with premium design for the ultimate database & streaming experience.</p>
-        <p style="margin-top: 8px; font-size: 12px; opacity: 0.5;">This site is for demo purposes. All streaming files are loaded dynamically from external APIs.</p>
-      </div>
+      <div class="footer-brand">AniSecret<sup style="font-size:0.55em;opacity:0.7;color:#e84393;">TH</sup></div>
+      <p class="footer-text">Powered by Alpha-Hen API • For educational purposes only</p>
     </div>
   </footer>
 
-  <!-- SPA Logic Script -->
-  <script type="module" src="./main.js"></script>
+  <!-- ═══ App Scripts (ES Modules) ═══ -->
+  <script type="module" src="js/app.js"></script>
+
 </body>
 </html>

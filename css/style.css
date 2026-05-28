@@ -1,0 +1,1372 @@
+/* ═══════════════════════════════════════════════════════
+   AniSecret — Dark Premium Design System
+   ═══════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@700;800;900&display=swap');
+
+/* ── 1. Custom Properties ─────────────────────────────── */
+
+:root {
+  /* Backgrounds */
+  --bg-primary:     #08080d;
+  --bg-secondary:   #0f0f17;
+  --bg-card:        #13131e;
+  --bg-card-hover:  #1a1a2e;
+  --bg-elevated:    #1c1c30;
+  --bg-input:       #101018;
+
+  /* Accents */
+  --accent-primary:   #b14aed;
+  --accent-secondary: #e84393;
+  --accent-gradient:  linear-gradient(135deg, #b14aed 0%, #e84393 100%);
+  --accent-glow:      0 0 20px rgba(177, 74, 237, 0.25);
+  --accent-glow-lg:   0 0 40px rgba(177, 74, 237, 0.2), 0 0 80px rgba(232, 67, 147, 0.1);
+
+  /* Text */
+  --text-primary:   #ebebf5;
+  --text-secondary: #8b8ba8;
+  --text-muted:     #55556e;
+
+  /* Borders */
+  --border-color:   rgba(255, 255, 255, 0.06);
+  --border-hover:   rgba(177, 74, 237, 0.4);
+
+  /* Glass */
+  --glass-bg:       rgba(15, 15, 23, 0.82);
+  --glass-border:   rgba(255, 255, 255, 0.08);
+
+  /* Score */
+  --score-high: #00e676;
+  --score-mid:  #ffc107;
+  --score-low:  #ff5252;
+
+  /* Sizing */
+  --nav-height:     64px;
+  --container-max:  1440px;
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+
+  /* Motion */
+  --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.4s var(--ease-out-expo);
+}
+
+
+/* ── 2. Reset & Base ──────────────────────────────────── */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) var(--bg-secondary);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 10% 5%, rgba(177, 74, 237, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 20%, rgba(232, 67, 147, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 90%, rgba(177, 74, 237, 0.04) 0%, transparent 60%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+}
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+
+
+/* ── 3. Layout ────────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+#app {
+  min-height: calc(100vh - var(--nav-height) - 80px);
+  padding-top: calc(var(--nav-height) + 24px);
+  padding-bottom: 48px;
+}
+
+
+/* ── 4. Navbar ────────────────────────────────────────── */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: var(--nav-height);
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.navbar::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-secondary), var(--accent-primary), transparent);
+  opacity: 0.45;
+  animation: navGlow 4s ease-in-out infinite alternate;
+}
+
+@keyframes navGlow {
+  0%   { opacity: 0.3; filter: blur(0px); }
+  100% { opacity: 0.6; filter: blur(0.5px); }
+}
+
+.navbar-inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 20px;
+}
+
+/* Brand / Logo */
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  text-decoration: none;
+  flex-shrink: 0;
+  gap: 1px;
+  transition: opacity var(--transition-fast);
+}
+.brand:hover { opacity: 0.85; }
+
+.brand-name {
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: 1px;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-th {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--accent-secondary);
+  vertical-align: super;
+  margin-left: 2px;
+  opacity: 0.85;
+}
+
+/* Search Bar */
+.search-wrapper {
+  flex: 1;
+  max-width: 520px;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 16px 0 42px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: var(--accent-glow);
+  background: var(--bg-secondary);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color var(--transition-base);
+}
+
+.search-input:focus ~ .search-icon {
+  color: var(--accent-primary);
+}
+
+/* Nav links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.active {
+  color: var(--accent-primary);
+}
+
+
+/* ── 5. Section Headers ───────────────────────────────── */
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  position: relative;
+  padding-left: 18px;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 2px;
+  background: var(--accent-gradient);
+  box-shadow: 0 0 12px rgba(177, 74, 237, 0.4);
+}
+
+
+/* ── 6. Anime Grid ────────────────────────────────────── */
+
+.anime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 20px;
+}
+
+
+/* ── 7. Anime Card ────────────────────────────────────── */
+
+.anime-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition:
+    transform var(--transition-slow),
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+  cursor: pointer;
+  animation: fadeSlideUp 0.5s var(--ease-out-expo) both;
+  position: relative;
+}
+
+.anime-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: var(--radius-lg);
+  padding: 1px;
+  background: linear-gradient(135deg, transparent 40%, var(--accent-primary) 50%, var(--accent-secondary) 60%, transparent 70%);
+  background-size: 300% 300%;
+  background-position: 0% 0%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease, background-position 0.6s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.anime-card:hover::before {
+  opacity: 1;
+  background-position: 100% 100%;
+}
+
+.anime-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  border-color: transparent;
+  box-shadow:
+    0 8px 32px rgba(177, 74, 237, 0.2),
+    0 2px 16px rgba(232, 67, 147, 0.12),
+    0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.card-image {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease-out-expo), filter 0.4s ease;
+}
+
+.anime-card:hover .card-image img {
+  transform: scale(1.12);
+  filter: brightness(0.65) saturate(1.2);
+}
+
+/* Play overlay */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  background: linear-gradient(to top, rgba(8, 8, 13, 0.85) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.anime-card:hover .card-overlay {
+  opacity: 1;
+}
+
+.card-play-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  color: white;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 30px rgba(177, 74, 237, 0.55);
+  transform: scale(0.7) translateY(8px);
+  transition: transform 0.45s var(--ease-out-expo), box-shadow 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.card-play-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.anime-card:hover .card-play-icon {
+  transform: scale(1) translateY(0);
+  box-shadow: 0 6px 36px rgba(177, 74, 237, 0.65);
+}
+
+/* Score badge */
+.card-score {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--score-color, var(--score-mid));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 2;
+  text-shadow: 0 0 8px var(--score-color, var(--score-mid));
+  letter-spacing: 0.5px;
+}
+
+/* Card info */
+.card-info {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--text-primary);
+  transition: color var(--transition-fast);
+}
+
+.anime-card:hover .card-title {
+  color: var(--accent-primary);
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+
+
+/* ── 8. Badges ────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.badge-episodes {
+  background: rgba(177, 74, 237, 0.15);
+  color: var(--accent-primary);
+  border: 1px solid rgba(177, 74, 237, 0.25);
+}
+
+.badge-status {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.badge-lang {
+  background: rgba(232, 67, 147, 0.12);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(232, 67, 147, 0.2);
+}
+
+.badge-sub {
+  background: rgba(0, 230, 118, 0.12);
+  color: var(--score-high);
+  border: 1px solid rgba(0, 230, 118, 0.2);
+}
+
+.badge-dub {
+  background: rgba(255, 193, 7, 0.12);
+  color: var(--score-mid);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+
+.badge-raw {
+  background: rgba(255, 152, 0, 0.12);
+  color: #ff9800;
+  border: 1px solid rgba(255, 152, 0, 0.25);
+  text-shadow: 0 0 6px rgba(255, 152, 0, 0.3);
+}
+
+.badge-tag {
+  background: rgba(177, 74, 237, 0.1);
+  color: #c78fff;
+  border: 1px solid rgba(177, 74, 237, 0.2);
+}
+
+
+/* ── 9. Detail Page ───────────────────────────────────── */
+
+.detail-page {
+  animation: fadeSlideUp 0.5s var(--ease-out-expo) both;
+}
+
+.detail-hero {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 36px;
+  margin-bottom: 40px;
+}
+
+.detail-poster {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(177, 74, 237, 0.1),
+    0 0 120px rgba(232, 67, 147, 0.06);
+  position: relative;
+}
+
+.detail-poster::after {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(circle at center, rgba(177, 74, 237, 0.12) 0%, transparent 65%);
+  z-index: -1;
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.detail-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-title {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.stat-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+}
+
+.detail-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.genre-tag {
+  padding: 5px 14px;
+  border-radius: var(--radius-xl);
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: rgba(177, 74, 237, 0.08);
+  color: #c78fff;
+  border: 1px solid rgba(177, 74, 237, 0.15);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.genre-tag:hover {
+  background: rgba(177, 74, 237, 0.18);
+  border-color: rgba(177, 74, 237, 0.35);
+}
+
+.detail-synopsis {
+  margin-top: 8px;
+}
+
+.detail-synopsis h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.detail-synopsis p {
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+.detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+
+/* ── 10. Episode List ─────────────────────────────────── */
+
+.episodes-section {
+  margin-top: 12px;
+}
+
+.episodes-section .section-title {
+  margin-bottom: 20px;
+}
+
+.episode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.episode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+  cursor: pointer;
+}
+
+.episode-row:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  transform: translateX(6px);
+  box-shadow: -4px 0 12px rgba(177, 74, 237, 0.1);
+}
+
+.episode-row.active {
+  background: rgba(177, 74, 237, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: inset 3px 0 0 var(--accent-primary), 0 0 16px rgba(177, 74, 237, 0.08);
+}
+
+.episode-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.episode-number {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+.episode-title {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.episode-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.episode-duration {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ── 11. Watch Page ───────────────────────────────────── */
+
+.watch-page {
+  animation: fadeSlideUp 0.4s var(--ease-out-expo) both;
+}
+
+.watch-header {
+  margin-bottom: 16px;
+}
+
+.watch-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.watch-episode-label {
+  font-size: 0.9rem;
+  color: var(--accent-primary);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(177, 74, 237, 0.15);
+  box-shadow:
+    0 8px 60px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(177, 74, 237, 0.08),
+    0 0 100px rgba(232, 67, 147, 0.04);
+  margin-bottom: 20px;
+}
+
+.player-wrapper video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.player-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  gap: 16px;
+  z-index: 5;
+}
+
+.player-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(177, 74, 237, 0.2);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.player-loading-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Quality selector */
+.quality-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.quality-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quality-btn {
+  padding: 7px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.quality-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.quality-btn.active {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 12px rgba(177, 74, 237, 0.4);
+}
+
+/* Watch layout split */
+.watch-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+.watch-episodes-panel .section-title {
+  font-size: 1.15rem;
+}
+
+
+/* ── 12. Pagination ───────────────────────────────────── */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 40px;
+}
+
+.page-btn {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.page-btn:hover:not(.active):not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.page-btn.active {
+  background: var(--accent-gradient);
+  color: white;
+  border-color: transparent;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-ellipsis {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 0 4px;
+}
+
+
+/* ── 13. Loading Skeletons ────────────────────────────── */
+
+.skeleton {
+  pointer-events: none;
+}
+
+.skeleton .card-image,
+.skeleton-image {
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-elevated) 37%, var(--bg-secondary) 63%);
+  background-size: 400% 100%;
+  animation: shimmerSweep 1.4s ease-in-out infinite;
+  aspect-ratio: 3 / 4;
+}
+
+.skeleton-text {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-elevated) 37%, var(--bg-secondary) 63%);
+  background-size: 400% 100%;
+  animation: shimmerSweep 1.4s ease-in-out infinite;
+}
+
+.skeleton-title {
+  height: 16px;
+  width: 80%;
+}
+
+.skeleton-meta {
+  height: 12px;
+  width: 60%;
+  margin-top: 8px;
+}
+
+.skeleton-line {
+  height: 14px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-elevated) 37%, var(--bg-secondary) 63%);
+  background-size: 400% 100%;
+  animation: shimmerSweep 1.4s ease-in-out infinite;
+  margin-bottom: 10px;
+}
+
+.skeleton-line:nth-child(2) { width: 90%; animation-delay: 0.1s; }
+.skeleton-line:nth-child(3) { width: 75%; animation-delay: 0.2s; }
+.skeleton-line:nth-child(4) { width: 85%; animation-delay: 0.15s; }
+
+.skeleton-block {
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-elevated) 37%, var(--bg-secondary) 63%);
+  background-size: 400% 100%;
+  animation: shimmerSweep 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmerSweep {
+  0%   { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+/* ── 14. Error & Empty States ─────────────────────────── */
+
+.state-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+  animation: fadeSlideUp 0.5s var(--ease-out-expo) both;
+}
+
+.state-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.state-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.state-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+}
+
+.state-action {
+  margin-top: 20px;
+  padding: 10px 28px;
+  border-radius: var(--radius-xl);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: white;
+  background: var(--accent-gradient);
+  transition: box-shadow var(--transition-base), transform var(--transition-fast);
+}
+
+.state-action:hover {
+  box-shadow: 0 4px 20px rgba(177, 74, 237, 0.4);
+  transform: translateY(-2px);
+}
+
+
+/* ── 15. Back Button ──────────────────────────────────── */
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  margin-bottom: 20px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast), gap var(--transition-base);
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  color: var(--accent-primary);
+  gap: 12px;
+}
+
+.back-arrow {
+  font-size: 1.1rem;
+  transition: transform var(--transition-base);
+}
+
+.back-btn:hover .back-arrow {
+  transform: translateX(-3px);
+}
+
+
+/* ── 16. Load More ────────────────────────────────────── */
+
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.load-more-btn {
+  padding: 12px 40px;
+  border-radius: var(--radius-xl);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.load-more-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-gradient);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.load-more-btn:hover {
+  border-color: var(--accent-primary);
+  box-shadow: var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+.load-more-btn:hover::before {
+  opacity: 0.12;
+}
+
+.load-more-btn span {
+  position: relative;
+  z-index: 1;
+}
+
+.load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* ── 17. Footer ───────────────────────────────────────── */
+
+.site-footer {
+  padding: 40px 0;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+  margin-top: 48px;
+  position: relative;
+}
+
+.site-footer::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(177, 74, 237, 0.3), rgba(232, 67, 147, 0.2), transparent);
+}
+
+.footer-brand {
+  font-family: 'Orbitron', monospace;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+
+.footer-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  letter-spacing: 0.3px;
+}
+
+
+/* ── 18. Animations ───────────────────────────────────── */
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0%   { opacity: 0.4; }
+  50%  { opacity: 0.7; }
+  100% { opacity: 0.4; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(177, 74, 237, 0.2); }
+  50%      { box-shadow: 0 0 20px rgba(177, 74, 237, 0.5); }
+}
+
+/* Staggered card animations */
+.anime-card:nth-child(1)  { animation-delay: 0.00s; }
+.anime-card:nth-child(2)  { animation-delay: 0.04s; }
+.anime-card:nth-child(3)  { animation-delay: 0.08s; }
+.anime-card:nth-child(4)  { animation-delay: 0.12s; }
+.anime-card:nth-child(5)  { animation-delay: 0.16s; }
+.anime-card:nth-child(6)  { animation-delay: 0.20s; }
+.anime-card:nth-child(7)  { animation-delay: 0.24s; }
+.anime-card:nth-child(8)  { animation-delay: 0.28s; }
+.anime-card:nth-child(9)  { animation-delay: 0.32s; }
+.anime-card:nth-child(10) { animation-delay: 0.36s; }
+.anime-card:nth-child(11) { animation-delay: 0.40s; }
+.anime-card:nth-child(12) { animation-delay: 0.44s; }
+
+
+/* ── 19. Page transitions ─────────────────────────────── */
+
+.page-enter {
+  animation: fadeSlideUp 0.45s var(--ease-out-expo) both;
+}
+
+
+/* ── 20. Responsive ───────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .anime-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+  }
+
+  .detail-hero {
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+  }
+
+  .detail-title {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .anime-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .detail-hero {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .detail-poster {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+
+  .detail-title {
+    font-size: 1.35rem;
+    text-align: center;
+  }
+
+  .detail-stats {
+    justify-content: center;
+  }
+
+  .detail-genres {
+    justify-content: center;
+  }
+
+  .detail-synopsis p {
+    font-size: 0.85rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .episode-row {
+    padding: 12px 14px;
+  }
+
+  .episode-info {
+    gap: 10px;
+  }
+
+  .episode-number {
+    min-width: 55px;
+    font-size: 0.78rem;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .search-wrapper {
+    max-width: none;
+  }
+
+  .watch-title {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --nav-height: 56px;
+  }
+
+  .brand-name {
+    font-size: 1.15rem;
+  }
+
+  .anime-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .card-info {
+    padding: 10px;
+  }
+
+  .card-title {
+    font-size: 0.8rem;
+  }
+
+  .badge {
+    font-size: 0.62rem;
+    padding: 2px 6px;
+  }
+
+  .player-wrapper {
+    border-radius: var(--radius-md);
+  }
+
+  .detail-poster {
+    max-width: 180px;
+  }
+}
+
+
+/* ── 21. Utilities ────────────────────────────────────── */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-gradient {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Smooth image loading */
+.card-image img {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card-image img.loaded {
+  opacity: 1;
+}
+
+.card-image.img-error {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-elevated) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-image.img-error::after {
+  content: '🎬';
+  font-size: 2.5rem;
+  opacity: 0.3;
+}
