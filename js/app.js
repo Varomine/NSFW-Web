@@ -355,11 +355,12 @@ async function renderWatchPage(episodeUrl) {
 
     const seriesEpisodes = allEpisodes.filter(ep => (ep.type || 'sub').toLowerCase() !== 'dub');
 
-    const defaultQuality = rawQualityKeys.includes('1080p')
-      ? '1080p'
-      : rawQualityKeys.includes('720p')
-        ? '720p'
-        : rawQualityKeys[rawQualityKeys.length - 1];
+    const sortedRawKeys = [...rawQualityKeys].sort((a, b) => {
+      const numA = parseInt(a) || 0;
+      const numB = parseInt(b) || 0;
+      return numB - numA;
+    });
+    const defaultQuality = sortedRawKeys[0] || '1080p';
 
     container.innerHTML = `
       <div class="container page-enter">

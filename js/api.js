@@ -2,7 +2,7 @@
 //  AniSecret — API Service Layer
 // ═══════════════════════════════════════════════════════
 
-const BASE_URL = 'https://alpha-hen-worker.sapis.workers.dev';
+const BASE_URL = 'https://alpha-hen-worker-v2.sapis.workers.dev';
 const JIKAN_URL = 'https://api.jikan.moe/v4';
 
 // ── Simple in-memory cache ──────────────────────────────
