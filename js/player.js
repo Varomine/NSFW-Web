@@ -95,7 +95,7 @@ export function destroyPlayer() {
 //  CUSTOM CONTROLS
 // ═══════════════════════════════════════════════════════
 
-export function setupControls(videoEl, qualities, activeQuality) {
+export function setupControls(videoEl, qualities, activeQuality, episodeUrl) {
   const W = videoEl.closest('.player-wrapper');
   if (!W) return;
 
@@ -117,12 +117,62 @@ export function setupControls(videoEl, qualities, activeQuality) {
   let curQ = activeQuality;
   let seeking = false;
 
+  // Load saved volume settings
+  const savedVolume = localStorage.getItem('player-volume');
+  if (savedVolume !== null) {
+    videoEl.volume = parseFloat(savedVolume);
+  }
+  const savedMuted = localStorage.getItem('player-muted');
+  if (savedMuted !== null) {
+    videoEl.muted = savedMuted === 'true';
+  }
+
   // ── Helpers ──────────────────────
   const fmt = (s) => {
     if (!s || isNaN(s)) return '0:00';
     const m = Math.floor(s / 60);
     return `${m}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
   };
+
+  // Show Resume Playback banner if progress exists
+  if (episodeUrl) {
+    const savedTimeVal = localStorage.getItem(`resume_${episodeUrl}`);
+    if (savedTimeVal) {
+      const resumeTime = parseFloat(savedTimeVal);
+      if (resumeTime > 5) {
+        const banner = document.createElement('div');
+        banner.className = 'player-resume-banner';
+        banner.innerHTML = `
+          <div class="resume-banner-text">Resume watching from ${fmt(resumeTime)}?</div>
+          <div class="resume-banner-actions">
+            <button class="btn-resume-action yes" id="btn-resume-yes">Resume</button>
+            <button class="btn-resume-action no" id="btn-resume-no">Start Over</button>
+          </div>
+        `;
+        W.appendChild(banner);
+
+        const removeBanner = () => {
+          banner.classList.add('hide');
+          setTimeout(() => banner.remove(), 300);
+        };
+
+        banner.querySelector('#btn-resume-yes').addEventListener('click', () => {
+          videoEl.currentTime = resumeTime;
+          videoEl.play().catch(() => {});
+          removeBanner();
+        });
+
+        banner.querySelector('#btn-resume-no').addEventListener('click', () => {
+          localStorage.removeItem(`resume_${episodeUrl}`);
+          removeBanner();
+        });
+
+        // Auto remove banner after 8s
+        const bannerTimeout = setTimeout(removeBanner, 8000);
+        banner.addEventListener('click', () => clearTimeout(bannerTimeout));
+      }
+    }
+  }
 
   function syncPlay() {
     const playing = !videoEl.paused && !videoEl.ended;
@@ -142,6 +192,24 @@ export function setupControls(videoEl, qualities, activeQuality) {
       volSlider.value = Math.round(v * 100);
       volSlider.style.setProperty('--fill', `${v * 100}%`);
     }
+    // Save to localStorage
+    localStorage.setItem('player-volume', videoEl.volume);
+    localStorage.setItem('player-muted', videoEl.muted);
+  }
+
+  // Save progress periodically to localStorage
+  let lastSaveTime = 0;
+  function saveProgress() {
+    const cur = videoEl.currentTime;
+    const dur = videoEl.duration;
+    if (episodeUrl && dur && cur > 5 && cur < dur - 15) {
+      if (Math.abs(cur - lastSaveTime) > 3) {
+        localStorage.setItem(`resume_${episodeUrl}`, cur);
+        lastSaveTime = cur;
+      }
+    } else if (episodeUrl && dur && cur >= dur - 15) {
+      localStorage.removeItem(`resume_${episodeUrl}`);
+    }
   }
 
   function syncProgress() {
@@ -150,6 +218,7 @@ export function setupControls(videoEl, qualities, activeQuality) {
     progressBar.style.width = `${pct}%`;
     thumb.style.left = `${pct}%`;
     timeEl.textContent = `${fmt(videoEl.currentTime)} / ${fmt(videoEl.duration)}`;
+    saveProgress();
   }
 
   function syncBuffer() {

@@ -2,7 +2,7 @@
 //  AniSecret — API Service Layer
 // ═══════════════════════════════════════════════════════
 
-const BASE_URL = 'https://alpha-hen-worker.hirunyawatra.workers.dev';
+const BASE_URL = 'https://alpha-hen-worker.sapis.workers.dev';
 const JIKAN_URL = 'https://api.jikan.moe/v4';
 
 // ── Simple in-memory cache ──────────────────────────────
@@ -12,6 +12,8 @@ const _cache = {
   episodes: new Map(),
   resolve: new Map(),
   jikan: new Map(),
+  schedule: null,
+  filter: new Map(),
 };
 
 // ── Base64 helpers (UTF-8 safe) ─────────────────────────
@@ -44,14 +46,16 @@ export async function fetchLatest(page = 1) {
   return data;
 }
 
-// ── Search (paginated) ──────────────────────────────────
-export async function fetchSearch(query, page = 1) {
-  const key = `search_${query}_${page}`;
+// ── Search (paginated, with advanced filters support) ──
+export async function fetchSearch(query, page = 1, params = {}) {
+  const qp = new URLSearchParams({ q: query, page });
+  for (const [k, v] of Object.entries(params)) {
+    if (v) qp.set(k, v);
+  }
+  const key = qp.toString();
   if (_cache.search.has(key)) return _cache.search.get(key);
 
-  const res = await fetch(
-    `${BASE_URL}/api/search?q=${encodeURIComponent(query)}&page=${page}`
-  );
+  const res = await fetch(`${BASE_URL}/api/search?${key}`);
   if (!res.ok) throw new Error(`Search failed for "${query}"`);
   const data = await res.json();
   _cache.search.set(key, data);
@@ -114,3 +118,42 @@ export async function fetchSynopsis(title) {
     return null;
   }
 }
+
+// ── Fetch Schedule ──────────────────────────────────────
+export async function fetchSchedule() {
+  if (_cache.schedule) return _cache.schedule;
+
+  const res = await fetch(`${BASE_URL}/api/schedule`);
+  if (!res.ok) throw new Error('Failed to fetch schedule');
+  const data = await res.json();
+  _cache.schedule = data;
+  return data;
+}
+
+// ── Fetch Filters Options ────────────────────────────────
+export async function fetchFilters() {
+  if (_cache.filters) return _cache.filters;
+
+  const res = await fetch(`${BASE_URL}/api/filters`);
+  if (!res.ok) throw new Error('Failed to fetch filter options');
+  const data = await res.json();
+  _cache.filters = data;
+  return data;
+}
+
+// ── Fetch Filter (paginated, with query params) ─────────
+export async function fetchFilter(page = 1, params = {}) {
+  const qp = new URLSearchParams({ page });
+  for (const [k, v] of Object.entries(params)) {
+    if (v) qp.set(k, v);
+  }
+  const key = qp.toString();
+  if (_cache.filter.has(key)) return _cache.filter.get(key);
+
+  const res = await fetch(`${BASE_URL}/api/filter?${key}`);
+  if (!res.ok) throw new Error('Failed to fetch filtered results');
+  const data = await res.json();
+  _cache.filter.set(key, data);
+  return data;
+}
+
