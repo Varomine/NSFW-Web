@@ -818,6 +818,18 @@ input { font-family: inherit; }
     0 0 40px rgba(177, 74, 237, 0.08),
     0 0 100px rgba(232, 67, 147, 0.04);
   margin-bottom: 20px;
+  transition: transform var(--transition-base);
+}
+
+.player-wrapper.is-pseudo-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
 }
 
 .player-wrapper video {

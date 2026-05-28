@@ -17,6 +17,8 @@ export const PlayerIcons = {
   volMute: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor" stroke="none"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>',
   fullscreen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
   exitFs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+  back5: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><text x="12" y="15.5" font-size="7" font-weight="bold" fill="currentColor" stroke="none" text-anchor="middle">5</text></svg>',
+  forward5: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><text x="12" y="15.5" font-size="7" font-weight="bold" fill="currentColor" stroke="none" text-anchor="middle">5</text></svg>',
 };
 
 // ── Initialize HLS ──────────────────────────────────────
@@ -105,6 +107,8 @@ export function setupControls(videoEl, qualities, activeQuality, episodeUrl) {
   const bufferBar     = $('#progress-buffer');
   const thumb         = $('#progress-thumb');
   const playBtn       = $('#ctrl-play');
+  const back5Btn      = $('#ctrl-back-5');
+  const forward5Btn   = $('#ctrl-forward-5');
   const timeEl        = $('#player-time');
   const volBtn        = $('#ctrl-volume');
   const volSlider     = $('#volume-slider');
@@ -239,6 +243,24 @@ export function setupControls(videoEl, qualities, activeQuality, episodeUrl) {
   if (centerPlay) centerPlay.addEventListener('click', toggle);
   videoEl.addEventListener('click', toggle);
 
+  // ── +5s and -5s Skip ────────────
+  if (back5Btn) {
+    back5Btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      videoEl.currentTime = Math.max(0, videoEl.currentTime - 5);
+      syncProgress();
+      showCtrls();
+    });
+  }
+  if (forward5Btn) {
+    forward5Btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      videoEl.currentTime = Math.min(videoEl.duration || 0, videoEl.currentTime + 5);
+      syncProgress();
+      showCtrls();
+    });
+  }
+
   // ── Seek ────────────────────────
   function seekAt(e) {
     const r = progressWrap.getBoundingClientRect();
@@ -290,19 +312,63 @@ export function setupControls(videoEl, qualities, activeQuality, episodeUrl) {
   document.addEventListener('click', closePopup);
 
   // ── Fullscreen ──────────────────
-  fsBtn.addEventListener('click', () => {
-    document.fullscreenElement ? document.exitFullscreen() : W.requestFullscreen().catch(() => {});
+  const toggleFullscreen = () => {
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || W.classList.contains('is-pseudo-fullscreen'));
+    if (isFs) {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else {
+        W.classList.remove('is-pseudo-fullscreen');
+        onFs();
+      }
+    } else {
+      if (W.requestFullscreen) {
+        W.requestFullscreen().catch(() => {});
+      } else if (W.webkitRequestFullscreen) {
+        W.webkitRequestFullscreen().catch(() => {});
+      } else if (videoEl.webkitEnterFullscreen) {
+        // iOS Safari Fullscreen (iPhone)
+        videoEl.webkitEnterFullscreen();
+      } else if (videoEl.webkitEnterFullScreen) {
+        videoEl.webkitEnterFullScreen();
+      } else {
+        // Fallback: pseudo fullscreen
+        W.classList.add('is-pseudo-fullscreen');
+        onFs();
+      }
+    }
+  };
+
+  fsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleFullscreen();
   });
   videoEl.addEventListener('dblclick', (e) => {
     e.preventDefault();
-    document.fullscreenElement ? document.exitFullscreen() : W.requestFullscreen().catch(() => {});
+    toggleFullscreen();
   });
+
   const onFs = () => {
-    const fs = !!document.fullscreenElement;
+    const fs = !!(document.fullscreenElement || document.webkitFullscreenElement || W.classList.contains('is-pseudo-fullscreen'));
     fsBtn.innerHTML = fs ? PlayerIcons.exitFs : PlayerIcons.fullscreen;
     W.classList.toggle('is-fullscreen', fs);
   };
+
   document.addEventListener('fullscreenchange', onFs);
+  document.addEventListener('webkitfullscreenchange', onFs);
+
+  const onWebkitBeginFs = () => {
+    W.classList.add('is-fullscreen');
+    fsBtn.innerHTML = PlayerIcons.exitFs;
+  };
+  const onWebkitEndFs = () => {
+    W.classList.remove('is-fullscreen');
+    fsBtn.innerHTML = PlayerIcons.fullscreen;
+  };
+  videoEl.addEventListener('webkitbeginfullscreen', onWebkitBeginFs);
+  videoEl.addEventListener('webkitendfullscreen', onWebkitEndFs);
 
   // ── Auto-hide ───────────────────
   function showCtrls() {
@@ -326,7 +392,7 @@ export function setupControls(videoEl, qualities, activeQuality, episodeUrl) {
       case 'ArrowLeft':  e.preventDefault(); videoEl.currentTime = Math.max(0, videoEl.currentTime - 10); showCtrls(); break;
       case 'ArrowUp':    e.preventDefault(); videoEl.volume = Math.min(1, videoEl.volume + 0.1); syncVolume(); showCtrls(); break;
       case 'ArrowDown':  e.preventDefault(); videoEl.volume = Math.max(0, videoEl.volume - 0.1); syncVolume(); showCtrls(); break;
-      case 'f': document.fullscreenElement ? document.exitFullscreen() : W.requestFullscreen().catch(() => {}); break;
+      case 'f': toggleFullscreen(); break;
       case 'm': videoEl.muted = !videoEl.muted; syncVolume(); break;
     }
   };
@@ -344,8 +410,11 @@ export function setupControls(videoEl, qualities, activeQuality, episodeUrl) {
     videoEl.removeEventListener('ended', syncPlay);
     videoEl.removeEventListener('timeupdate', syncProgress);
     videoEl.removeEventListener('progress', syncBuffer);
+    videoEl.removeEventListener('webkitbeginfullscreen', onWebkitBeginFs);
+    videoEl.removeEventListener('webkitendfullscreen', onWebkitEndFs);
     document.removeEventListener('click', closePopup);
     document.removeEventListener('fullscreenchange', onFs);
+    document.removeEventListener('webkitfullscreenchange', onFs);
     document.removeEventListener('keydown', onKey);
   });
 }

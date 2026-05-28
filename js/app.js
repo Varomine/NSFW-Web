@@ -380,7 +380,9 @@ async function renderWatchPage(episodeUrl) {
               </div>
               <div class="player-controls-row">
                 <div class="player-controls-left">
+                  <button class="player-ctrl-btn" id="ctrl-back-5" aria-label="Backward 5s">${PlayerIcons.back5}</button>
                   <button class="player-ctrl-btn" id="ctrl-play" aria-label="Play">${PlayerIcons.play}</button>
+                  <button class="player-ctrl-btn" id="ctrl-forward-5" aria-label="Forward 5s">${PlayerIcons.forward5}</button>
                   <div class="player-volume-group">
                     <button class="player-ctrl-btn" id="ctrl-volume" aria-label="Volume">${PlayerIcons.volHigh}</button>
                     <div class="player-volume-slider-wrap">
