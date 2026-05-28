@@ -274,13 +274,28 @@ async function renderWatchPage(episodeUrl) {
 
   try {
     const resolveData = await resolveStream(episodeUrl);
-    const qualities = resolveData?.qualities || {};
-    const qualityKeys = Object.keys(qualities);
+    const rawQualities = resolveData?.qualities || {};
+    const rawQualityKeys = Object.keys(rawQualities);
 
-    if (qualityKeys.length === 0) {
+    if (rawQualityKeys.length === 0) {
       container.innerHTML = `<div class="container">${renderBackButton('Back')}${renderError('No streams found', 'Could not resolve video streams for this episode.')}</div>`;
       return;
     }
+
+    // Inject Auto quality by replacing resolution path with flower.txt
+    const qualities = {};
+    const firstQualityKey = rawQualityKeys[0];
+    if (firstQualityKey) {
+      const firstQuality = rawQualities[firstQualityKey];
+      const autoUrl = firstQuality.url.replace(/\/[^\/]+$/, '/flower.txt');
+      qualities['Auto'] = {
+        url: autoUrl,
+        referer: firstQuality.referer,
+        resolution: 'auto'
+      };
+    }
+    Object.assign(qualities, rawQualities);
+    const qualityKeys = Object.keys(qualities);
 
     // Find series from cache
     let seriesUrl = '';
@@ -340,11 +355,11 @@ async function renderWatchPage(episodeUrl) {
 
     const seriesEpisodes = allEpisodes.filter(ep => (ep.type || 'sub').toLowerCase() !== 'dub');
 
-    const defaultQuality = qualityKeys.includes('1080p')
+    const defaultQuality = rawQualityKeys.includes('1080p')
       ? '1080p'
-      : qualityKeys.includes('720p')
+      : rawQualityKeys.includes('720p')
         ? '720p'
-        : qualityKeys[qualityKeys.length - 1];
+        : rawQualityKeys[rawQualityKeys.length - 1];
 
     container.innerHTML = `
       <div class="container page-enter">
