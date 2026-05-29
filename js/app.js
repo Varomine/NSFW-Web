@@ -35,6 +35,7 @@ import { initPlayer, switchQuality, destroyPlayer, setupControls, PlayerIcons } 
 const state = {
   currentRoute: '',
   animeCache: new Map(), // url -> card data for quicker detail loads
+  episodeToSeries: new Map(), // episodeUrl -> seriesUrl
 };
 
 // ── DOM Reference ───────────────────────────────────────
@@ -188,6 +189,13 @@ async function renderDetailPage(seriesUrl) {
     ]);
 
     const episodes = (episodeData?.episodes || []).filter(ep => (ep.type || 'sub').toLowerCase() !== 'dub');
+
+    // Populate episodeToSeries mapping for fast lookup in watch view
+    if (episodeData?.episodes) {
+      for (const ep of episodeData.episodes) {
+        state.episodeToSeries.set(ep.url, seriesUrl);
+      }
+    }
     const thumbnail = cachedCard?.thumbnail || jikanData?.images?.jpg?.large_image_url || '';
     const displayTitle = cachedCard?.title || episodes[0]?.title || 'Unknown';
     const score = jikanData?.score || cachedCard?.score || '—';
@@ -297,39 +305,30 @@ async function renderWatchPage(episodeUrl) {
     Object.assign(qualities, rawQualities);
     const qualityKeys = Object.keys(qualities);
 
-    // Find series from cache
-    let seriesUrl = '';
-    let currentEpTitle = '';
-
-    let allEpisodes = [];
-    for (const [url] of state.animeCache) {
-      try {
-        const epData = await fetchEpisodes(url);
-        const match = epData?.episodes?.find(e => e.url === episodeUrl);
-        if (match) {
-          seriesUrl = url;
-          allEpisodes = epData.episodes || [];
-          currentEpTitle = match.episode;
-          break;
-        }
-      } catch { continue; }
+    // Find series URL: first look in state.episodeToSeries map, then try deriving
+    let seriesUrl = state.episodeToSeries?.get(episodeUrl);
+    if (!seriesUrl) {
+      seriesUrl = deriveSeriesUrl(episodeUrl);
     }
 
-    // Fallback: derive series URL if not in cache (direct load / refresh)
-    if (!seriesUrl) {
-      const derivedUrl = deriveSeriesUrl(episodeUrl);
-      if (derivedUrl) {
-        try {
-          const epData = await fetchEpisodes(derivedUrl);
-          const match = epData?.episodes?.find(e => e.url === episodeUrl);
-          if (match) {
-            seriesUrl = derivedUrl;
-            allEpisodes = epData.episodes || [];
-            currentEpTitle = match.episode;
-          }
-        } catch (err) {
-          console.error('[Watch Direct Fetch Error]', err);
+    let allEpisodes = [];
+    let currentEpTitle = '';
+
+    if (seriesUrl) {
+      try {
+        const epData = await fetchEpisodes(seriesUrl);
+        allEpisodes = epData?.episodes || [];
+        const match = allEpisodes.find(e => e.url === episodeUrl);
+        if (match) {
+          currentEpTitle = match.episode;
         }
+        
+        // Populate episodeToSeries mapping for fast subsequent lookups
+        for (const ep of allEpisodes) {
+          state.episodeToSeries.set(ep.url, seriesUrl);
+        }
+      } catch (err) {
+        console.error('[Watch Fetch Episodes Error]', err);
       }
     }
 
@@ -360,7 +359,7 @@ async function renderWatchPage(episodeUrl) {
       const numB = parseInt(b) || 0;
       return numB - numA;
     });
-    const defaultQuality = sortedRawKeys[0] || '1080p';
+    const defaultQuality = qualities['Auto'] ? 'Auto' : (sortedRawKeys[0] || '1080p');
 
     container.innerHTML = `
       <div class="container page-enter">
